@@ -1,3 +1,3 @@
 #/bin/sh
-gcc ./client/client.c -o client.out
+gcc ./client/main.c ./client/client.c -o client.out
 
