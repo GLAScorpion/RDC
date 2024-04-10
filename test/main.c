@@ -13,9 +13,10 @@
 
 int main()
 {
-    //risolve localhost
+    //resolve local host
+    //
     struct hostent *server;
-    server = gethostbyname("localhost");
+    server = gethostbyname("142.251.209.36");
     if(server == NULL)
     {
         perror("gethostbyname");
@@ -40,7 +41,7 @@ int main()
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_port = htons(5000);
-    addr.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr*)server->h_addr));
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     memset(&(addr.sin_zero), '\0', 8);
 
     if(connect(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
@@ -69,7 +70,7 @@ int main()
         if(ret > 0)
         {
             printf("%s", buf);
-            memset(buf, 0, sizeof(buf));    
+            memset(buf, 0, sizeof(buf));
         }
         else
         {
@@ -79,5 +80,5 @@ int main()
     }
     close(fd);
 
-    return 0;   
-}           
+    return 0;
+}
