@@ -48,6 +48,7 @@ int connect_client(struct Client *client, const char *ip, int port) {
 
 int make_request(struct Client *client, enum Method method, const char *request,
                  const char *body) {
+<<<<<<< HEAD
   /*
    * SP = space
    * CR = \r
@@ -132,6 +133,25 @@ int make_request(struct Client *client, enum Method method, const char *request,
   strcat(Request, "\r\n"); // CRLF
   // printf("%s", Request);
   return write(client->socket, Request, strlen(Request));
+=======
+  char request_line[1000];
+  strcpy(request_line, Methods[method]);
+  strcat(request_line, request);
+  const char entity_header[] = " HTTP/1.1";
+  strcat(request_line, entity_header);
+  int body_len = strlen(body);
+  if (body_len > 0) {
+    const char content_type[] = "\r\nContent-Type: text/plain; charset=utf8";
+    strcat(request_line, content_type);
+    const char content_len[] = "\r\nContent-Length: ";
+    strcat(request_line, content_len);
+    sprintf(request_line + strlen(request_line), "%d\r\n\r\n", body_len);
+    strcat(request_line, body);
+  }
+  strcat(request_line, "\r\n\r\n");
+  // printf("%s", request_line);
+  return write(client->socket, request_line, strlen(request_line));
+>>>>>>> refs/remotes/origin/main
 }
 
 int read_all(struct Client *client) {
