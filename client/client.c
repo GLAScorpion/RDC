@@ -76,40 +76,43 @@ int make_request(struct Client *client, enum Method method, const char *request,
    *
    * General-Header:
    *    Date = "Date:" SP HTTP-Date
-   *           HTTP-Date = wkday "," SP day SP month SP year SP time SP "GMT"
+   *        HTTP-Date = wkday "," SP day SP month SP year SP time SP "GMT"
    *    Pragma = "Pragma:" SP pragma-directive
-   *             direttive specifiche dell'implementazione
+   *        direttive specifiche dell'implementazione
    *
    * Request-Header:
    *    Authorization = "Authorization:" SP credentials
    *    From = "From:" SP e-mail
    *    If-Modified-Since = "If-Modified-Since:" SP HTTP-Date
-   *                        Se il contenuto specificato dalla GET non è stato
-   *                        modificato a partire dalla HTTP-Date fino ad adesso
-   *                        il server non deve restituire risorse, ma piuttosto
-   *                        il codice di stato 304 nella risposta
+   *        Se il contenuto specificato dalla GET non è stato
+   *        modificato a partire dalla HTTP-Date fino ad adesso
+   *        il server non deve restituire risorse, ma piuttosto
+   *        il codice di stato 304 nella risposta.
    *    Referer = "Referer:" SP URI
-   *              Indica la risorsa da cui il client ha ottenuto la nuova
+   *        Indica la risorsa da cui il client ha ottenuto la nuova
    * Request-URI Per esempio il Referer è la pagina da cui poi clicchi un
-   *              collegamento per raggiungere una nuova pagina
+   *        collegamento per raggiungere una nuova pagina.
    *    User-Agent = "User-Agent:" SP User-Agent-String
-   *                 Stringa che può interessare al server e descrive il nome
-   *                 del programma che il client usa per la connessione
+   *        Stringa che può interessare al server e descrive il nome
+   *        del programma che il client usa per la connessione.
    *
    * Entity-Header:
    *    Allow: "Allow:" SP method
-   *           Indica i methodi possibili per una risorsa
+   *        Indica i methodi possibili per una risorsa.
    *    Content-Encoding: "Content-Encoding:" SP encoding
-   *                      Indica eventuale encoding aggiuntivo, tipo
-   * compressione Content-Length: "Content-Length:" SP length La lunghezza in
-   * bytes del Entity-Body Content-Type: "Content-Type:" SP MIME-type Indica il
-   * MIME type dei dati trasmessi Expires: "Expires:" SP HTTP-Date Indica la
-   * data dopo la quale la risorsa è da considerare vecchia e da riscaricare
+   *        Indica eventuale encoding aggiuntivo, tipo compressione.
+   *    Content-Length: "Content-Length:" SP length
+   *        La lunghezza in bytes del Entity-Body.
+   *    Content-Type: "Content-Type:" SP MIME-type
+   *        Indica il MIME type dei dati trasmessi.
+   *    Expires: "Expires:" SP HTTP-Date
+   *        Indica la data dopo la quale la risorsa è da considerare vecchia
+   *        e da riscaricare.
    *    Last-Modified: "Last-Modified:" SP HTTP-Date
-   *                   Indica una data che il client ritiene essere di ultima
-   *                   modifica della risorsa Entity-Body. In base poi
-   *                   all'implementazione il server può decidere di aggiornare
-   *                   i propri dati se più vecchi di quelli forniti dal client
+   *        Indica una data che il client ritiene essere di ultima
+   *        modifica della risorsa Entity-Body. In base poi
+   *        all'implementazione il server può decidere di aggiornare
+   *        i propri dati se più vecchi di quelli forniti dal client.
    * */
 
   char Request[1000];
