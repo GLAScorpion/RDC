@@ -48,7 +48,6 @@ int connect_client(struct Client *client, const char *ip, int port) {
 
 int make_request(struct Client *client, enum Method method, const char *request,
                  const char *body) {
-<<<<<<< HEAD
   /*
    * SP = space
    * CR = \r
@@ -133,8 +132,6 @@ int make_request(struct Client *client, enum Method method, const char *request,
   strcat(Request, "\r\n"); // CRLF
   // printf("%s", Request);
   return write(client->socket, Request, strlen(Request));
-=======
->>>>>>> refs/remotes/origin/main
 }
 
 int read_all(struct Client *client) {
