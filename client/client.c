@@ -1,4 +1,5 @@
 #include "client.h"
+#include "../utils/dstring.h"
 #include <string.h>
 int connect_client(struct Client *client, const char *ip, int port) {
   /*
@@ -53,22 +54,22 @@ int make_request(struct Client *client, enum Method method, const char *request,
    * CR = \r
    * LF = \n
    *
-   * Request-Line
+   * Request->string-Line
    * *( General-Header      // "*" vuol dire che questo componente può essere
-   *  | Request-Header      // presente 0 o + volte
+   *  | Request->string-Header      // presente 0 o + volte
    *  | Entity-Header )
    *  CRLF
    *  [ Entity-Body ]
    *  CRLF
    *
    * Ogni riga, ogni header va a capo con un CRLF, i CRLF specificati nel
-   * formato della Request sono aggiuntivi (righe vuote)
+   * formato della Request->string sono aggiuntivi (righe vuote)
    *
-   * Request-Line = Method SP Request-URI SP HTTP-Version
+   * Request->string-Line = Method SP Request->string-URI SP HTTP-Version
    *
    * Methods:
-   *    GET: Serve per richiedere delle risorse, identificate dalla Request-URI.
-   *         Il server deve restituire una risposta con un body.
+   *    GET: Serve per richiedere delle risorse, identificate dalla
+   * Request->string-URI. Il server deve restituire una risposta con un body.
    *    HEAD: Come GET ma il server non deve restituire un Entity-Body.
    *    POST: Segnala al server che deve accettare il contenuto dell'Entity-Body
    *          nella request. E' necessario includere nella request l'header
@@ -80,7 +81,7 @@ int make_request(struct Client *client, enum Method method, const char *request,
    *    Pragma = "Pragma:" SP pragma-directive
    *        direttive specifiche dell'implementazione
    *
-   * Request-Header:
+   * Request->string-Header:
    *    Authorization = "Authorization:" SP credentials
    *    From = "From:" SP e-mail
    *    If-Modified-Since = "If-Modified-Since:" SP HTTP-Date
@@ -90,11 +91,10 @@ int make_request(struct Client *client, enum Method method, const char *request,
    *        il codice di stato 304 nella risposta.
    *    Referer = "Referer:" SP URI
    *        Indica la risorsa da cui il client ha ottenuto la nuova
-   * Request-URI Per esempio il Referer è la pagina da cui poi clicchi un
-   *        collegamento per raggiungere una nuova pagina.
-   *    User-Agent = "User-Agent:" SP User-Agent-String
-   *        Stringa che può interessare al server e descrive il nome
-   *        del programma che il client usa per la connessione.
+   * Request->string-URI Per esempio il Referer è la pagina da cui poi clicchi
+   * un collegamento per raggiungere una nuova pagina. User-Agent =
+   * "User-Agent:" SP User-Agent-String Stringa che può interessare al server e
+   * descrive il nome del programma che il client usa per la connessione.
    *
    * Entity-Header:
    *    Allow: "Allow:" SP method
@@ -115,26 +115,28 @@ int make_request(struct Client *client, enum Method method, const char *request,
    *        i propri dati se più vecchi di quelli forniti dal client.
    * */
 
-  char Request[1000];
-  strcpy(Request, Methods[method]); // Method
-  strcat(Request, request);         // Request-URI
-  strcat(Request, " HTTP/1.0\r\n"); // HTTP-Version
+  struct Dstring Request;
+  CreateStr(&Request, Methods[method]); // Method
+  ConcatStr(&Request, request);         // Request->string-URI
+  ConcatStr(&Request, " HTTP/1.0\r\n"); // HTTP-Version
   int body_len = strlen(body);
   if (body_len > 0) { // Entity-Header
                       // Content-Type
     const char content_type[] = "Content-Type: text/plain; charset=utf8\r\n";
-    strcat(Request, content_type);
+    ConcatStr(&Request, content_type);
     // Content-Length
     const char content_len[] = "Content-Length: ";
-    strcat(Request, content_len);
-    sprintf(Request + strlen(Request), "%d\r\n\r\n", body_len); // CRLF
-                                                                // Entity-Body
-    strcat(Request, body);
-    strcat(Request, "\r\n"); // CRLF
+    ConcatStr(&Request, content_len);
+    ConcatInt(&Request, strlen(body));
+    ConcatStr(&Request, "\r\n\r\n"); // CRLF
+    ConcatStr(&Request, body);       // Entity-Body
+    ConcatStr(&Request, "\r\n");     // CRLF
   }
-  strcat(Request, "\r\n"); // CRLF
-  // printf("%s", Request);
-  return write(client->socket, Request, strlen(Request));
+  ConcatStr(&Request, "\r\n"); // CRLF
+  // printf("%s", Request->string);
+  int result = write(client->socket, Request.string, Request.size);
+  DestroyStr(&Request);
+  return result;
 }
 
 int read_all(struct Client *client) {
