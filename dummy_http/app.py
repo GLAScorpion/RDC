@@ -10,6 +10,6 @@ def hello_world():
 def post():
     if request.method == 'POST':
         result = request.get_data(as_text=True)
-        print(result)
+        print(request.content_type)
         return result
     return "Not allowed"

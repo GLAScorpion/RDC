@@ -1,3 +1,7 @@
+#ifndef client_h
+#define client_h
+#include "../utils/dstring.h"
+#include "../utils/httpheaders.h"
 #include <arpa/inet.h>
 #include <errno.h>
 #include <stdio.h>
@@ -9,13 +13,18 @@ static const char *const Methods[] = {"GET ", "POST ", "HEAD "};
 
 struct Client {
   struct sockaddr_in server;
-  char response[2000000];
+  struct Dstring response;
   int socket;
 };
+
+void create_client(struct Client *client);
 
 int connect_client(struct Client *client, const char *ip, int port);
 
 int make_request(struct Client *client, enum Method method, const char *request,
-                 const char *body);
+                 struct HTTPHeaders *headers, const char *body);
 
 int read_all(struct Client *client);
+
+void close_client(struct Client *client);
+#endif
