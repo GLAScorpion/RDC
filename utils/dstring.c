@@ -11,7 +11,7 @@ void CreateStr(struct Dstring *string, const char *new_str) {
     string->alloc_size = 16;
   }
   string->string = malloc(string->alloc_size);
-  strcat(string->string, new_str);
+  strcpy(string->string, new_str);
 }
 
 void CreateStrFromInt(struct Dstring *string, size_t num) {

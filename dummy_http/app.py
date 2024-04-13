@@ -1,5 +1,5 @@
 from flask import Flask,request
-
+from werkzeug.serving import WSGIRequestHandler
 app = Flask(__name__)
 
 @app.route("/")
@@ -13,3 +13,7 @@ def post():
         print(request.content_type)
         return result
     return "Not allowed"
+
+WSGIRequestHandler.protocol_version = "HTTP/1.1"
+if __name__ == "__main__":
+    app.run()

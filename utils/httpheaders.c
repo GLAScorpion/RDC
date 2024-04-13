@@ -1,13 +1,15 @@
 #include "httpheaders.h"
 
 void CreateHTTPHeaders(struct HTTPHeaders *headers) {
+  headers->general.Connection.string = NULL;
   headers->general.Date.string = NULL;
   headers->general.Pragma.string = NULL;
+  headers->general.Transfer_Encoding.string = NULL;
+  headers->request.Accept_Encoding.string = NULL;
   headers->request.Authorization.string = NULL;
   headers->request.If_Modified_Since.string = NULL;
   headers->request.From.string = NULL;
   headers->request.Referer.string = NULL;
-  headers->request.Request_URI.string = NULL;
   headers->request.User_Agent.string = NULL;
   headers->entity.Allow.string = NULL;
   headers->entity.Content_Encoding.string = NULL;
@@ -29,13 +31,15 @@ void FieldAdder(struct Dstring *request, struct Dstring *field,
 
 void MakeClientRequestHeaders(struct HTTPHeaders *headers,
                               struct Dstring *request) {
+  FieldAdder(request, &headers->general.Connection, "Connection");
   FieldAdder(request, &headers->general.Date, "Date");
   FieldAdder(request, &headers->general.Pragma, "Pragma");
+  FieldAdder(request, &headers->general.Transfer_Encoding, "Transfer-Encoding");
+  FieldAdder(request, &headers->request.Accept_Encoding, "Accept-Encoding");
   FieldAdder(request, &headers->request.Authorization, "Authorization");
   FieldAdder(request, &headers->request.From, "From");
   FieldAdder(request, &headers->request.If_Modified_Since, "If-Modified-Since");
   FieldAdder(request, &headers->request.Referer, "Referer");
-  FieldAdder(request, &headers->request.Request_URI, "Request-URI");
   FieldAdder(request, &headers->request.User_Agent, "User-Agent");
   FieldAdder(request, &headers->entity.Allow, "Allow");
   FieldAdder(request, &headers->entity.Content_Encoding, "Content-Encoding");
