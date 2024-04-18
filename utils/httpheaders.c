@@ -1,4 +1,5 @@
 #include "httpheaders.h"
+#include <stdio.h>
 
 void CreateHTTPHeaders(struct HTTPHeaders *headers) {
   headers->general.Connection.string = NULL;
@@ -47,4 +48,46 @@ void MakeClientRequestHeaders(struct HTTPHeaders *headers,
   FieldAdder(request, &headers->entity.Content_Type, "Content-Type");
   FieldAdder(request, &headers->entity.Expires, "Expires");
   FieldAdder(request, &headers->entity.Last_Modified, "Last-Modified");
+}
+
+void ifFieldPopulate(const char *header_name, const char *header_value,
+                     struct Dstring *field, const char *field_name) {
+  if (!strcmp(header_name, field_name)) {
+    CreateStr(field, header_value);
+  }
+}
+
+void PopulateHTTPHeaders(struct HTTPHeaders *headers, struct header *header_pos,
+                         const char *header_data, size_t size) {
+  const char *value = NULL;
+  const char *name = NULL;
+  CreateHTTPHeaders(headers);
+  for (int i = 1; i < size; i++) {
+    value = &header_data[header_pos[i].value];
+    name = &header_data[header_pos[i].name];
+    // printf("%s: %s\n", name, value);
+    ifFieldPopulate(name, value, &headers->general.Connection, "Connection");
+    ifFieldPopulate(name, value, &headers->general.Date, "Date");
+    ifFieldPopulate(name, value, &headers->general.Pragma, "Pragma");
+    ifFieldPopulate(name, value, &headers->general.Transfer_Encoding,
+                    "Transfer-Encoding");
+    ifFieldPopulate(name, value, &headers->request.Accept_Encoding,
+                    "Accept-Encoding");
+    ifFieldPopulate(name, value, &headers->request.Authorization,
+                    "Authorization");
+    ifFieldPopulate(name, value, &headers->request.From, "From");
+    ifFieldPopulate(name, value, &headers->request.If_Modified_Since,
+                    "If-Modified-Since");
+    ifFieldPopulate(name, value, &headers->request.Referer, "Referer");
+    ifFieldPopulate(name, value, &headers->request.User_Agent, "User-Agent");
+    ifFieldPopulate(name, value, &headers->entity.Allow, "Allow");
+    ifFieldPopulate(name, value, &headers->entity.Content_Encoding,
+                    "Content-Encoding");
+    ifFieldPopulate(name, value, &headers->entity.Content_Length,
+                    "Content-Length");
+    ifFieldPopulate(name, value, &headers->entity.Content_Type, "Content-Type");
+    ifFieldPopulate(name, value, &headers->entity.Expires, "Expires");
+    ifFieldPopulate(name, value, &headers->entity.Last_Modified,
+                    "Last-Modified");
+  }
 }

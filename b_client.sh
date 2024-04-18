@@ -1,3 +1,3 @@
 #/bin/sh
-gcc ./client/main.c ./client/client.c ./utils/dstring.c ./utils/httpheaders.c -o client.out -lm
+gcc -lm ./client/main.c ./client/client.c ./utils/dstring.c ./utils/httpheaders.c ./utils/httpreader.c -o client.out
 ./client.out

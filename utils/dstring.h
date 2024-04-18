@@ -15,6 +15,8 @@ void ConcatStr(struct Dstring *string, const char *other);
 
 void ConcatInt(struct Dstring *string, size_t num);
 
+void AppendChar(struct Dstring *string, char *c);
+
 void DestroyStr(struct Dstring *str);
 
 void CopyStr(struct Dstring *string, const char *other);

@@ -8,7 +8,7 @@ void CreateStr(struct Dstring *string, const char *new_str) {
   if (string->size > 0) {
     string->alloc_size = 2 << (int)ceil(log2(string->size));
   } else {
-    string->alloc_size = 16;
+    string->alloc_size = 2;
   }
   string->string = malloc(string->alloc_size);
   strcpy(string->string, new_str);
@@ -60,6 +60,22 @@ void ConcatInt(struct Dstring *string, size_t num) {
     string->alloc_size = new_size;
   }
   sprintf((string->string + string->size), "%d", num);
+  string->size = tmp_new;
+}
+
+void AppendChar(struct Dstring *string, char *c) {
+  size_t old = string->size;
+  size_t tmp_new = 1 + string->size;
+  if (tmp_new + 1 > string->alloc_size) {
+    size_t new_size = 2 << (size_t)ceil(log2(tmp_new + 1));
+    char *tmp_ptr = realloc(string->string, new_size);
+    if (tmp_ptr == NULL) {
+      return;
+    }
+    string->string = tmp_ptr;
+    string->alloc_size = new_size;
+  }
+  string->string[old] = *c;
   string->size = tmp_new;
 }
 

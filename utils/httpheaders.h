@@ -115,8 +115,16 @@ struct HTTPHeaders {
   } extra;
 };
 
+struct header {
+  long long int name;
+  long long int value;
+};
+
 void CreateHTTPHeaders(struct HTTPHeaders *headers);
 
 void MakeClientRequestHeaders(struct HTTPHeaders *headers,
                               struct Dstring *request);
+
+void PopulateHTTPHeaders(struct HTTPHeaders *headers, struct header *header_pos,
+                         const char *header_data, size_t size);
 #endif

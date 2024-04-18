@@ -1,11 +1,7 @@
 #include "client.h"
 #include <string.h>
 
-void create_client(struct Client *client) {
-  client->response.string = NULL;
-  client->response.size = 0;
-  client->response.alloc_size = 0;
-}
+void create_client(struct Client *client) { CreateHTTPReader(&client->reader); }
 
 int connect_client(struct Client *client, const char *ip, int port) {
   /*
@@ -93,7 +89,6 @@ int make_request(struct Client *client, enum Method method, const char *request,
     MakeClientRequestHeaders(headers, &Request);
     ConcatStr(&Request, "\r\n"); // CRLF
     ConcatStr(&Request, body);   // Entity-Body
-    ConcatStr(&Request, "\r\n"); // CRLF
   } else {
     MakeClientRequestHeaders(headers, &Request);
     ConcatStr(&Request, "\r\n");
@@ -105,22 +100,17 @@ int make_request(struct Client *client, enum Method method, const char *request,
   return result;
 }
 
-int read_all(struct Client *client) {
-  DestroyStr(&client->response);
-  CreateStr(&client->response, "");
-  int total = 0;
-  char buf[128] = {0};
-  while (1) {
-    int ret = read(client->socket, buf, sizeof(buf) - 1);
-    if (ret > 0) {
-      ConcatStr(&client->response, buf);
-      total += ret;
-      memset(buf, 0, sizeof(buf));
-    } else {
-      return total;
-    }
+void print_headers(struct Client *client) {
+  for (int i = 0; i < client->reader.size; i++) {
+    printf("%s: %s",
+           &client->reader.data.string[client->reader.headers_data[i].name],
+           &client->reader.data.string[client->reader.headers_data[i].value]);
   }
-  return total;
+}
+
+int read_all(struct Client *client) {
+  ReadHeaders(&client->reader, client->socket);
+  return ReadContent(&client->reader, client->socket);
 }
 
 void close_client(struct Client *client) {
