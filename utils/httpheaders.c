@@ -91,3 +91,22 @@ void PopulateHTTPHeaders(struct HTTPHeaders *headers, struct header *header_pos,
                     "Last-Modified");
   }
 }
+
+void DestroyHTTPHeaders(struct HTTPHeaders *headers) {
+  DestroyStr(&headers->general.Connection);
+  DestroyStr(&headers->general.Date);
+  DestroyStr(&headers->general.Pragma);
+  DestroyStr(&headers->general.Transfer_Encoding);
+  DestroyStr(&headers->request.Accept_Encoding);
+  DestroyStr(&headers->request.Authorization);
+  DestroyStr(&headers->request.If_Modified_Since);
+  DestroyStr(&headers->request.From);
+  DestroyStr(&headers->request.Referer);
+  DestroyStr(&headers->request.User_Agent);
+  DestroyStr(&headers->entity.Allow);
+  DestroyStr(&headers->entity.Content_Encoding);
+  DestroyStr(&headers->entity.Content_Length);
+  DestroyStr(&headers->entity.Content_Type);
+  DestroyStr(&headers->entity.Expires);
+  DestroyStr(&headers->entity.Last_Modified);
+}

@@ -1,3 +1,3 @@
 #/bin/sh
-gcc ./server/server.c ./server/main.c -o server.out
+gcc ./utils/httpheaders.c ./utils/httpreader.c ./utils/dstring.c ./server/server.c ./server/main.c -lm -o server.out
 ./server.out

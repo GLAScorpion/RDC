@@ -1,6 +1,10 @@
 #ifndef httpheaders_h
 #define httpheaders_h
 #include "dstring.h"
+
+enum Method { GET = 0, POST, HEAD };
+static const char *const Methods[] = {"GET", "POST", "HEAD"};
+
 struct HTTPHeaders {
   struct HGeneral {
     /*
@@ -127,4 +131,6 @@ void MakeClientRequestHeaders(struct HTTPHeaders *headers,
 
 void PopulateHTTPHeaders(struct HTTPHeaders *headers, struct header *header_pos,
                          const char *header_data, size_t size);
+
+void DestroyHTTPHeaders(struct HTTPHeaders *headers);
 #endif

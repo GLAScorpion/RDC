@@ -9,7 +9,8 @@ struct HTTPReader {
   size_t alloc_size;
   size_t size;
   struct HTTPHeaders parsed_headers;
-  size_t parsed_line;
+  size_t second_section;
+  size_t third_section;
   struct Dstring parsed_body;
 };
 

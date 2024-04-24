@@ -9,14 +9,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-enum Method { GET = 0, POST, HEAD };
-static const char *const Methods[] = {"GET ", "POST ", "HEAD "};
-
 struct Client {
   struct HTTPReader reader;
   struct sockaddr_in server;
   struct Dstring response;
   int socket;
+  int last_method;
 };
 
 void create_client(struct Client *client);

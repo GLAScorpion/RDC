@@ -77,9 +77,10 @@ int make_request(struct Client *client, enum Method method, const char *request,
    *          nella request. E' necessario includere nella request l'header
    *          Content-Length che indica la lunghezza in bytes dell'Entity-Body.
    * */
-
+  client->last_method = method;
   struct Dstring Request;
   CreateStr(&Request, Methods[method]); // Method
+  ConcatStr(&Request, " ");
   ConcatStr(&Request, request);         // Request-URI
   ConcatStr(&Request, " HTTP/1.1\r\n"); // HTTP-Version
   int body_len = strlen(body);
@@ -110,6 +111,9 @@ void print_headers(struct Client *client) {
 
 int read_all(struct Client *client) {
   ReadHeaders(&client->reader, client->socket);
+  if (client->last_method == HEAD) {
+    return 0;
+  }
   return ReadContent(&client->reader, client->socket);
 }
 

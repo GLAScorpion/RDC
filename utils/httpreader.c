@@ -28,15 +28,16 @@ void CreateHTTPReader(struct HTTPReader *reader) {
   header_allocator(reader, 2);
   reader->size = 0;
   CreateHTTPHeaders(&reader->parsed_headers);
-  reader->parsed_line = 0;
   CreateStr(&reader->data, "");
   reader->parsed_body.string = NULL;
 }
 
 int ReadHeaders(struct HTTPReader *reader, int socket) {
   char buffer[1];
+  char parse_cmdline = 1;
   int j = 0;
   int i = 0;
+  int k = 0;
   for (; read(socket, buffer, 1); i++) {
     AppendChar(&reader->data, buffer);
     if (reader->data.string[i] == ':' &&
@@ -55,6 +56,17 @@ int ReadHeaders(struct HTTPReader *reader, int socket) {
       reader->headers_data[j].name = i + 1;
     }
   }
+  for (k = 0; reader->data.string[k] != ' '; k++) {
+  }
+  reader->data.string[k] = 0;
+  k++;
+  reader->second_section = k;
+  for (; reader->data.string[k] != ' '; k++) {
+  }
+  reader->data.string[k] = 0;
+  k++;
+  reader->third_section = k;
+
   PopulateHTTPHeaders(&reader->parsed_headers, reader->headers_data,
                       reader->data.string, j);
   return i;
@@ -72,7 +84,6 @@ int ReadContent(struct HTTPReader *reader, int socket) {
   } else if (reader->parsed_headers.general.Transfer_Encoding.string != NULL &&
              !strcmp(reader->parsed_headers.general.Transfer_Encoding.string,
                      "chunked")) {
-
     DestroyStr(&reader->parsed_body);
     CreateStr(&reader->parsed_body, "");
     struct Dstring chunk_hex;
@@ -112,8 +123,13 @@ int ReadContent(struct HTTPReader *reader, int socket) {
         CreateStr(&chunk_hex, "");
       }
     }
+    DestroyStr(&chunk_hex);
   }
   return 0;
 }
 
-void DestroyHTTPReader(struct HTTPReader *reader);
+void DestroyHTTPReader(struct HTTPReader *reader) {
+  DestroyStr(&reader->data);
+  DestroyStr(&reader->parsed_body);
+  free(reader->headers_data);
+}
