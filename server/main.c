@@ -8,4 +8,5 @@ int main() {
   }
   printf("Connection established on fd: %d\n", server.server_socket);
   StartServer(&server);
+  return 0;
 }

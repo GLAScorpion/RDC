@@ -5,32 +5,74 @@
 #include <unistd.h>
 int SetupServer(struct Server *server, int port, int queue) {
   server->isParentProc = -1;
+  /*
+   * Creo un socket per permettere al programma di effettuare
+   * operazioni di rete e connetersi con altri devices
+   *
+   * */
   server->server_socket = socket(AF_INET, SOCK_STREAM, 0);
   if (server->server_socket == -1) {
     return -1;
   }
   int True = 1;
+  /*
+   * Setto SO_REUSEADDR a 1 (true) per permettere al socket
+   * di riutilizzare degli indirizzi già in uso da altri socket.
+   * Gli altri socket devono essere però in una fase di wait
+   * ossia di inattività
+   *
+   * */
   int status = setsockopt(server->server_socket, SOL_SOCKET, SO_REUSEADDR,
                           &True, sizeof(int));
   if (status == -1) {
     return -1;
   }
+  /*
+   * Configuro la struct di rete per il server cosicchè
+   * essa utilizzi come ip quello della macchina, ossia lo 0
+   * e utilizzi come porta la porta specificata
+   *
+   * */
   server->server.sin_family = AF_INET;
   server->server.sin_port = htons(port);
   server->server.sin_addr.s_addr = 0;
+  /*
+   * Bindo il socket secondo la struct appena configurata
+   *
+   * */
   status = bind(server->server_socket, (struct sockaddr *)&server->server,
                 sizeof(struct sockaddr_in));
   if (status == -1) {
     return -1;
   }
+  /*
+   * Metto il socket in ascolto (listen) di nuove connessioni
+   * provenienti dall'esterno, con una queue che definisce il
+   * numero massimo di connessioni che possono rimanere in coda
+   *
+   * */
   status = listen(server->server_socket, queue);
   return 0;
 }
 
 int AcceptClient(struct Server *server) {
   socklen_t sck_size = sizeof(struct sockaddr_in);
+  /*
+   * Accetto le connessioni in entrata in un socket dedicato
+   * e carico le informazioni relative al client in una struct
+   * sockaddr_in da cui posso eventualmente ricavare l'ip
+   *
+   * */
   server->remote_socket = accept(server->server_socket,
                                  (struct sockaddr *)&server->remote, &sck_size);
+  /*
+   * Effettuo una fork del processo per permettere al child di
+   * gestire la connessione e al parent di continuare ad
+   * accettare connessioni e salvo lo stato di parentela
+   * per riconoscere durante l'esecuzione se effettuare certe
+   * operazioni di liberazione/rilascio delle risorse
+   *
+   * */
   server->isParentProc = fork();
   return server->remote_socket;
 }
@@ -41,7 +83,7 @@ void HandleGetRequest(struct Server *server) {
   if (server->reader.data.string[server->reader.second_section + 1] != 0) {
     filename = server->reader.data.string + server->reader.second_section + 1;
   }
-  FILE *file = fopen(filename, "rt");
+  FILE *file = fopen(filename, "rb");
   struct Dstring response;
   CreateStr(&response, "HTTP/1.1 ");
   if (file == NULL) {
@@ -61,7 +103,7 @@ void HandleGetRequest(struct Server *server) {
   DestroyStr(&response);
   const int buf_size = 1024;
   char buffer[buf_size];
-  int actual_read;
+  size_t actual_read;
   while (!feof(file)) {
     actual_read = fread(buffer, 1, buf_size, file);
     write(server->remote_socket, buffer, actual_read);
@@ -78,6 +120,7 @@ void StartServer(struct Server *server) {
   CopyStr(&server->headers.general.Connection, "close");
   size_t bytes_read = 0;
   while (1) {
+    // printf("loop\n");
     if (AcceptClient(server) == -1 && !server->isParentProc) {
       exit(-1);
     }
@@ -90,7 +133,7 @@ void StartServer(struct Server *server) {
       // char log_ip[INET_ADDRSTRLEN];
       //  inet_ntop(AF_INET, &server->remote, log_ip, INET_ADDRSTRLEN);
       char *log_ip = inet_ntoa(server->remote.sin_addr);
-      printf("%s %s %s from address %s\n", method,
+      printf("\"%s %s %s\" from address \"%s\"\n", method,
              method + server->reader.second_section,
              method + server->reader.third_section, log_ip);
       if (!strcmp(method, Methods[GET])) {
@@ -103,7 +146,9 @@ void StartServer(struct Server *server) {
       close(server->remote_socket);
       DestroyHTTPHeaders(&server->headers);
       DestroyHTTPReader(&server->reader);
+      // printf("Pre_exit\n");
       exit(-1);
+      break;
     } else if (server->isParentProc > 0) {
       close(server->remote_socket);
     }
