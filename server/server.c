@@ -6,8 +6,27 @@
 #include <sys/wait.h>
 #include <unistd.h>
 int SetupServer(struct Server *server, int port, int queue) {
+  /*
+   *
+   * Un child che ha fatto exit() ma non viene waitato diventa
+   * uno zombie e il kernel mantiene alcune delle sue relative
+   * informazioni.
+   * Per evitare ciò e di riempire la ram di informazioni
+   * inutili imposto dei parametri sui segnali di terminazione.
+   * In particolare setto la flag SA_NOCLDWAIT per il segnale
+   * del child in modo tale che dopo la exit esso non diventi
+   * uno zombie, in quanto non aspetta una chiamata wait().
+   *
+   * https://linux.die.net/man/2/waitpid
+   * */
   struct sigaction sig;
   sig.sa_flags = SA_NOCLDWAIT;
+  /*
+   * Setto con sigaction() la flag su SIGCHLD che è il segnale
+   * relativo al child.
+   *
+   * https://linux.die.net/man/2/sigaction
+   * */
   sigaction(SIGCHLD, &sig, NULL);
   server->isParentProc = -1;
   /*
@@ -128,8 +147,6 @@ void HandlePostRequest(int socket, struct HTTPReader *reader,
 }
 
 void StartServer(struct Server *server) {
-  int child_status;
-  size_t bytes_read = 0;
   while (1) {
     if (AcceptClient(server) == -1 && !server->isParentProc) {
       exit(-1);
@@ -142,10 +159,7 @@ void StartServer(struct Server *server) {
       CopyStr(&headers.general.Connection, "close");
       CreateHTTPReader(&reader);
       ReadHeaders(&reader, server->remote_socket);
-      // bytes_read = ReadContent(&server->reader, server->remote_socket);
       const char *method = reader.data.string;
-      // char log_ip[INET_ADDRSTRLEN];
-      //  inet_ntop(AF_INET, &server->remote, log_ip, INET_ADDRSTRLEN);
       char *log_ip = inet_ntoa(server->remote.sin_addr);
       printf("\"%s %s %s\" from address \"%s\"\n", method,
              method + reader.second_section, method + reader.third_section,
