@@ -100,23 +100,19 @@ int ReadContent(struct HTTPReader *reader, int socket) {
       }
       if (chunk_hex.string[chunk_hex.size - 1] == '\n' && flag) {
         chunk_hex.string[chunk_hex.size - 2] = 0;
-        // printf("hex_str: %s\n", chunk_hex.string);
         flag = 0;
         chunk = strtol(chunk_hex.string, NULL, 16);
-        // printf("chunk %d size: %d\n", i, chunk);
         if (chunk == 0) {
           DestroyStr(&chunk_hex);
+          ConcatStr(&reader->parsed_body, "\0");
           return reader->parsed_body.size;
         }
-        tmp = malloc(chunk);
-        for (int k = 0; k < chunk; k++) {
-          read(socket, tmp + k, 1);
-          if (k == chunk - 1) {
-            read(socket, skip, 2);
-          }
+        tmp = malloc(chunk + 1);
+        for (int k = 0; k < chunk;) {
+          k += read(socket, tmp + k, chunk - k);
         }
-        // printf("%s\n", tmp);
-        //  read(socket, NULL, 2);
+        read(socket, skip, 2);
+        tmp[chunk] = 0;
         ConcatStr(&reader->parsed_body, tmp);
         free(tmp);
         DestroyStr(&chunk_hex);
@@ -131,5 +127,6 @@ int ReadContent(struct HTTPReader *reader, int socket) {
 void DestroyHTTPReader(struct HTTPReader *reader) {
   DestroyStr(&reader->data);
   DestroyStr(&reader->parsed_body);
+  DestroyHTTPHeaders(&reader->parsed_headers);
   free(reader->headers_data);
 }

@@ -118,6 +118,6 @@ int read_all(struct Client *client) {
 }
 
 void close_client(struct Client *client) {
-  DestroyStr(&client->response);
+  DestroyHTTPReader(&client->reader);
   close(client->socket);
 }

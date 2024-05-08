@@ -17,7 +17,7 @@ int main() {
   //  CopyStr(&headers.request.Accept_Encoding, "chunked");
   // CopyStr(&headers.general.Connection, "close");
   // CopyStr(&headers.general.Transfer_Encoding, "chunked");
-  status = make_request(&client, HEAD, "/", &headers, "");
+  status = make_request(&client, GET, "/", &headers, "");
   printf("Total bytes read: %d\n", read_all(&client));
   printf("HTTP Version: %s\nStatus Code: %s\nReason: %s\n",
          client.reader.data.string,
@@ -25,14 +25,6 @@ int main() {
          client.reader.data.string + client.reader.third_section);
   printf("--CONTENT START--\n%s\n--CONTENT END--\n",
          client.reader.parsed_body.string);
-  //   printf("%d %d\n", client.response.size,
-  //   client.response.alloc_size);
-  /*
-  for (size_t i = 0; i < client.response.size; i++) {
-    printf("%d ", client.response.string[i]);
-    if (client.response.string[i] == '\n') {
-      printf("\n");
-    }
-  }
-  */
+  DestroyHTTPHeaders(&headers);
+  close_client(&client);
 }

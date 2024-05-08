@@ -3,8 +3,6 @@
 #include "../utils/httpreader.h"
 #include <arpa/inet.h>
 struct Server {
-  struct HTTPHeaders headers;
-  struct HTTPReader reader;
   struct sockaddr_in server;
   struct sockaddr_in remote;
   int server_socket;

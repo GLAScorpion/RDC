@@ -12,7 +12,6 @@
 struct Client {
   struct HTTPReader reader;
   struct sockaddr_in server;
-  struct Dstring response;
   int socket;
   int last_method;
 };
