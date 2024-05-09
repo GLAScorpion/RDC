@@ -22,6 +22,11 @@ void CreateHTTPHeaders(struct HTTPHeaders *headers) {
 
 void FieldAdder(struct Dstring *request, struct Dstring *field,
                 const char *name) {
+  /*
+   * Se il campo esiste e non è vuoto, lo formatta
+   * con il suo nome, ':', il valore e il CRLF e
+   * la concatena all'output
+   * */
   if (field->string != NULL && field->size > 0) {
     ConcatStr(request, name);
     ConcatStr(request, ": ");
@@ -52,6 +57,13 @@ void MakeClientRequestHeaders(struct HTTPHeaders *headers,
 
 void ifFieldPopulate(const char *header_name, const char *header_value,
                      struct Dstring *field, const char *field_name) {
+  /*
+   * Se header_name == field_name allora il campo
+   * è quello corretto, esiste e quindi si può
+   * copiare il value nella Dstring corrispondente
+   * (field)
+   *
+   * */
   if (!strcmp(header_name, field_name)) {
     CreateStr(field, header_value);
   }
@@ -62,6 +74,11 @@ void PopulateHTTPHeaders(struct HTTPHeaders *headers, struct header *header_pos,
   const char *value = NULL;
   const char *name = NULL;
   CreateHTTPHeaders(headers);
+  /*
+   * Scorro tutti gli header tranne il primo che
+   * è contaminato e non contiene niente di
+   * valido
+   * */
   for (int i = 1; i < size; i++) {
     value = &header_data[header_pos[i].value];
     name = &header_data[header_pos[i].name];

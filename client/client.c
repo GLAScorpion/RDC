@@ -1,9 +1,10 @@
 #include "client.h"
+#include <netdb.h>
 #include <string.h>
 
 void create_client(struct Client *client) { CreateHTTPReader(&client->reader); }
 
-int connect_client(struct Client *client, const char *ip, int port) {
+int connect_client(struct Client *client, const char *address, int port) {
   /*
    * AF_INET è la categoria di protocolli Internet per la trasmissione
    * dei dati.
@@ -35,9 +36,29 @@ int connect_client(struct Client *client, const char *ip, int port) {
   client->server.sin_port = htons(port);
   /*
    * L'ip è un indirizzo di rete che identifica unicamente ogni
-   * macchina collegata
+   * macchina collegata. Per ottenerlo utilizzo la funzione
+   * gethostbyname() in cui l'indirizzo fornito può essere un
+   * host name oppure un indirizzo IPv4 in notazione puntata,
+   * ossia <XXX.XXX.XXX.XXX>. In particolare nel caso del host
+   * name verrà eseguita la name resolution e il risultato
+   * salvato in struct hostent server.
+   *
    * */
-  client->server.sin_addr.s_addr = inet_addr(ip);
+  struct hostent *server;
+  server = gethostbyname(address);
+  /*
+   * addr_list è un puntatore alla lista di puntatori agli indirizzi
+   * corrispondenti all'host name fornito e solitamente quello che
+   * importa è quello all'offset 0.
+   *
+   * */
+  struct in_addr **addr_list;
+  addr_list = (struct in_addr **)server->h_addr_list;
+  /*
+   * assegno s_addr dalla addr_list[0] all's_addr della struct
+   * sockaddr_in del server
+   * */
+  client->server.sin_addr.s_addr = addr_list[0]->s_addr;
   /*
    * Per instanziare una connessione nel modello client-server
    * è necessario quindi un server che accetti la connessione ad una
@@ -77,6 +98,7 @@ int make_request(struct Client *client, enum Method method, const char *request,
    *          nella request. E' necessario includere nella request l'header
    *          Content-Length che indica la lunghezza in bytes dell'Entity-Body.
    * */
+  // salvo il metodo per evitare di aspettare un body dopo un HEAD
   client->last_method = method;
   struct Dstring Request;
   CreateStr(&Request, Methods[method]); // Method
@@ -95,7 +117,7 @@ int make_request(struct Client *client, enum Method method, const char *request,
     ConcatStr(&Request, "\r\n");
   }
   ConcatStr(&Request, "\r\n"); // CRLF
-  printf("%s", Request.string);
+  // printf("%s", Request.string);
   int result = write(client->socket, Request.string, Request.size);
   DestroyStr(&Request);
   return result;

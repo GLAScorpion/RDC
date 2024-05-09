@@ -21,7 +21,7 @@ void CreateStrFromInt(struct Dstring *string, size_t num) {
   }
   string->alloc_size = 2 << (int)ceil(log2(string->size));
   string->string = malloc(string->alloc_size);
-  sprintf(string->string, "%d", num);
+  sprintf(string->string, "%lu", num);
 }
 
 void ConcatStr(struct Dstring *string, const char *other) {
@@ -59,7 +59,7 @@ void ConcatInt(struct Dstring *string, size_t num) {
     string->string = tmp_ptr;
     string->alloc_size = new_size;
   }
-  sprintf((string->string + string->size), "%d", num);
+  sprintf((string->string + string->size), "%lu", num);
   string->size = tmp_new;
 }
 

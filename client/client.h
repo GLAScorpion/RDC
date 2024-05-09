@@ -18,7 +18,7 @@ struct Client {
 
 void create_client(struct Client *client);
 
-int connect_client(struct Client *client, const char *ip, int port);
+int connect_client(struct Client *client, const char *address, int port);
 
 int make_request(struct Client *client, enum Method method, const char *request,
                  struct HTTPHeaders *headers, const char *body);

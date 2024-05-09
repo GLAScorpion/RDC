@@ -1,20 +1,16 @@
 #include "client.h"
-#include <netdb.h>
 
 int main() {
-  struct hostent *server;
-  server = gethostbyname("127.0.0.1");
-  // server = gethostbyname("127.0.0.1");
-  struct in_addr **addr_list;
-  addr_list = (struct in_addr **)server->h_addr_list;
+  char localhost[] = "127.0.0.1";
+  char google[] = "www.google.com";
   struct Client client;
   create_client(&client);
-  int status = connect_client(&client, inet_ntoa(*addr_list[0]), 7070);
-  printf("Client connection status: %d\n", status);
+  int status = connect_client(&client, localhost, 7070);
+  printf("Client connection status: %d\n\n", status);
   struct HTTPHeaders headers;
   CreateHTTPHeaders(&headers);
   // CopyStr(&headers.entity.Content_Type, "text/plain; charset=utf-8");
-  //  CopyStr(&headers.request.Accept_Encoding, "chunked");
+  // CopyStr(&headers.request.Accept_Encoding, "chunked");
   // CopyStr(&headers.general.Connection, "close");
   // CopyStr(&headers.general.Transfer_Encoding, "chunked");
   status = make_request(&client, GET, "/", &headers, "");
@@ -26,7 +22,7 @@ int main() {
   struct Dstring res_headers;
   CreateStr(&res_headers, "");
   MakeClientRequestHeaders(&client.reader.parsed_headers, &res_headers);
-  printf("\n--HEADERS--\n%s--HEADERS END--\n", res_headers.string);
+  printf("\n--HEADERS--\n%s--HEADERS END--\n\n", res_headers.string);
   printf("--CONTENT START--\n%s\n--CONTENT END--\n",
          client.reader.parsed_body.string);
   DestroyStr(&res_headers);
