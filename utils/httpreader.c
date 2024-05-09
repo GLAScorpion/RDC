@@ -78,8 +78,12 @@ int ReadContent(struct HTTPReader *reader, int socket) {
     DestroyStr(&reader->parsed_body);
     reader->parsed_body.size = reader->parsed_body.alloc_size =
         atoi(reader->parsed_headers.entity.Content_Length.string);
-    reader->parsed_body.string = malloc(reader->parsed_body.alloc_size);
-    read(socket, reader->parsed_body.string, reader->parsed_body.size);
+    reader->parsed_body.string = malloc(reader->parsed_body.alloc_size + 1);
+    reader->parsed_body.string[reader->parsed_body.alloc_size] = 0;
+    for (int k = 0; k < reader->parsed_body.size;) {
+      k += read(socket, reader->parsed_body.string + k,
+                reader->parsed_body.size - k);
+    }
     return reader->parsed_body.size;
   } else if (reader->parsed_headers.general.Transfer_Encoding.string != NULL &&
              !strcmp(reader->parsed_headers.general.Transfer_Encoding.string,

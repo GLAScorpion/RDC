@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 int SetupServer(struct Server *server, int port, int queue) {
@@ -101,8 +102,8 @@ int AcceptClient(struct Server *server) {
   return server->remote_socket;
 }
 
-void HandleGetRequest(int socket, struct HTTPReader *reader,
-                      struct HTTPHeaders *headers) {
+FILE *HandleHeadRequest(int socket, struct HTTPReader *reader,
+                        struct HTTPHeaders *headers) {
   char default_index[] = "index.html";
   char *filename = default_index;
   if (reader->data.string[reader->second_section + 1] != 0) {
@@ -117,15 +118,34 @@ void HandleGetRequest(int socket, struct HTTPReader *reader,
     ConcatStr(&response, "200 OK");
   }
   ConcatStr(&response, "\r\n");
-  MakeClientRequestHeaders(headers, &response);
-  ConcatStr(&response, "\r\n");
+  size_t body_size = 0;
+  struct Dstring response_body;
+  CreateStr(&response_body, "\r\n");
   if (file == NULL) {
-    ConcatStr(&response, "<html><h1>File ");
-    ConcatStr(&response, filename);
-    ConcatStr(&response, " non trovato</h1></html>\r\n");
+    ConcatStr(&response_body, "<html><h1>File ");
+    ConcatStr(&response_body, filename);
+    ConcatStr(&response_body, " non trovato</h1></html>\r\n");
+    body_size = response_body.size;
+  } else {
+    struct stat file_info;
+    stat(filename, &file_info);
+    body_size = file_info.st_size;
   }
+  CreateStrFromInt(&headers->entity.Content_Length, body_size);
+  MakeClientRequestHeaders(headers, &response);
+  ConcatStr(&response, response_body.string);
   write(socket, response.string, response.size);
+  DestroyStr(&response_body);
   DestroyStr(&response);
+  return file;
+}
+
+void HandleGetRequest(int socket, struct HTTPReader *reader,
+                      struct HTTPHeaders *headers) {
+  FILE *file = HandleHeadRequest(socket, reader, headers);
+  if (file == NULL) {
+    return;
+  }
   const int buf_size = 1024;
   char buffer[buf_size];
   size_t actual_read;
@@ -136,14 +156,11 @@ void HandleGetRequest(int socket, struct HTTPReader *reader,
   fclose(file);
 }
 
-void HandleHeadRequest(int socket, struct HTTPReader *reader,
-                       struct HTTPHeaders *headers) {
-  ;
-}
-
 void HandlePostRequest(int socket, struct HTTPReader *reader,
                        struct HTTPHeaders *headers) {
-  ;
+  char response[] = "HTTP/1.1 501 NOT IMPLEMENTED\r\n\r\n<html><h1>OPERATION "
+                    "NOT ALLOWED</h1></html>\r\n";
+  write(socket, response, sizeof(response));
 }
 
 void StartServer(struct Server *server) {
@@ -167,7 +184,7 @@ void StartServer(struct Server *server) {
       if (!strcmp(method, Methods[GET])) {
         HandleGetRequest(server->remote_socket, &reader, &headers);
       } else if (!strcmp(method, Methods[HEAD])) {
-        HandleHeadRequest(server->remote_socket, &reader, &headers);
+        fclose(HandleHeadRequest(server->remote_socket, &reader, &headers));
       } else if (!strcmp(method, Methods[POST])) {
         HandlePostRequest(server->remote_socket, &reader, &headers);
       }
