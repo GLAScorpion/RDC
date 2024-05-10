@@ -53,5 +53,5 @@ dkms.conf
 remote_copy/
 q
 sync_remote.sh
-
+.ccls-cache/
 *__pycache__
